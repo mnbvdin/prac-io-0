@@ -1,9 +1,7 @@
 import pandas as pd
 
 ANSWER = './answer/'
-file_names = ['MS-b1', 'MS-b2', 'MS-m1',
-              'MS-m2', 'MS-s1', 'MS-s2',
-              'MS-s3', 'MS-s4', 'MS-s5']
+file_names = ['MS-b1', 'MS-b2', 'MS-m1']
 
 
 # Число проданных в этот день яблок и карандашей
@@ -12,7 +10,7 @@ def get_sold_items(sell):
     sell['sku_num'] = sell['sku_num'].apply(lambda x: -1 if x.find('ap') == 6 else 1)
     sell['num'] = sell['sku_num']
 
-    sell['sku_num'] = sell['sku_num'].apply(lambda x: 0 if x > 0 else -x)
+    sell['sku_num'] = sell['sku_num'].apply(lambda x: 0 if x > 0 else -x) #количество яблок
     sell['num'] = sell['num'].apply(lambda x: 0 if x < 0 else x)
 
     sell = sell.rename(columns={"sku_num": "apple", "num": "pen"})
@@ -23,7 +21,7 @@ def get_sold_items(sell):
 # Состояние склада на каждый день
 def daily_inventory(supply, sell):
     daily_inv = pd.DataFrame(columns=['apple', 'pen'], index=sell.index)
-    daily_inv['apple'] = -sell['apple']
+    daily_inv['apple'] = -sell['apple'] #продажи 
     daily_inv['pen'] = -sell['pen']
 
     daily_inv = pd.concat([daily_inv, supply])  # присоединяем таблицу с поставками
@@ -37,12 +35,12 @@ def daily_inventory(supply, sell):
 
 # Cуммарное количество товара, украденного к концу данного месяца
 def monthly_theft(daily_inv, inventory):
-    month_inv = daily_inv.resample('M').last()
+    month_inv = daily_inv.resample('M').last() #последний остаток каждого месяца
 
-    month_inv['pen'] -= inventory['pen']
+    month_inv['pen'] -= inventory['pen']# расчетный - фактический
     month_inv['apple'] -= inventory['apple']
 
-    month_inv['pen'] = month_inv['pen'] - month_inv['pen'].shift(1).fillna(0)
+    month_inv['pen'] = month_inv['pen'] - month_inv['pen'].shift(1).fillna(0)  #от накопленного расхождения текушего месяца отнимается расхождение прошлого месяца
     month_inv['apple'] = month_inv['apple'] - month_inv['apple'].shift(1).fillna(0)
     return month_inv
 
